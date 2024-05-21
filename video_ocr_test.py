@@ -2,21 +2,23 @@ import cv2
 import pytesseract
 import re
 import csv
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe' # Adjust to your system Tesseract path
 
-def extract_text_from_video(video_path):
+def extract_text_from_video(video_path, isVerbose):
 
     cap = cv2.VideoCapture(video_path)
     timestamps = []
     nrs_recognised = []
     newValue = 0
     prevValue = 0
+    frameSkip = 15 # fps. Number of frames skipped for recognition.
+    frame_count = 0 # frame count variable to skip some frames to reduce sampling rate
 
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break 
-
+        
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         # limit the frame manually?
         # Rotate the image to improve Tesseract recognition?
@@ -30,17 +32,21 @@ def extract_text_from_video(video_path):
                frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                frame = cv2.putText(frame, data['text'][i], (x, y + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2) 
                newValue = int(data['text'][i])
-               if newValue != prevValue:
-                   nrs_recognised.append(newValue)
-                   prevValue = newValue
-                   timestamps.append(int(cap.get(cv2.CAP_PROP_POS_MSEC)))
-               else:
-                   nrs_recognised.append(prevValue)
-                   timestamps.append(int(cap.get(cv2.CAP_PROP_POS_MSEC)))
-               print("Timestamp (ms): %d, \nRecognised: %s" % (timestamps[-1], nrs_recognised[-1])) 
+            #    if newValue != prevValue:
+            #        nrs_recognised.append(newValue)
+            #        prevValue = newValue
+            #        timestamps.append(int(cap.get(cv2.CAP_PROP_POS_MSEC)))
+            #    else:
+            #        nrs_recognised.append(prevValue)
+            #        timestamps.append(int(cap.get(cv2.CAP_PROP_POS_MSEC)))
+               nrs_recognised.append(newValue)
+               timestamps.append(int(cap.get(cv2.CAP_PROP_POS_MSEC)))
+               if isVerbose:
+                print("Timestamp (ms): %d, \nRecognised: %s" % (timestamps[-1], nrs_recognised[-1])) 
 
         cv2.imshow('Number Recognition', frame)
-        
+        frame_count += frameSkip # set to reduce sampling freq
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_count)
         #print("Timestamp (ms): %d, \nRecognised: %s" % (timestamp, data))
         
         if cv2.waitKey(1) & 0xFF == ord('q'): 
@@ -65,6 +71,6 @@ def write_to_csv(path_to_csv,time_list,number_list):
 
 
 
-times,numbers = extract_text_from_video('./phys_test_4.mp4')
+times,numbers = extract_text_from_video('./008_20052024_C.mp4',1)
 #print_recognised(times,numbers)
-write_to_csv('./test_output_csv_1.csv',times,numbers)
+write_to_csv('./test_output_csv_008_20052024_C_downsampled.csv',times,numbers)
