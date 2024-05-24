@@ -110,6 +110,6 @@ def write_to_csv(path_to_csv,detected_data):
             
 
 
-detected_data = extract_text_from_video('C:/Users/erutkovs/OneDrive - University College London/MRes sVNS project/Human trial/human_trial_recordings/data_20052024/008_20052024_P_card.mp4',1,0)
+detected_data = extract_text_from_video('path/to/video.mp4',1,0)
 #print_recognised(times,numbers)
-write_to_csv('C:/Users/erutkovs/OneDrive - University College London/MRes sVNS project/Human trial/human_trial_recordings/data_20052024/008_20052024_P_card.csv',detected_data)
+write_to_csv('path/to/csv.csv',detected_data)
